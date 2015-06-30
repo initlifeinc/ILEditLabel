@@ -2,6 +2,9 @@
 ILEditLabel is label support copy&edit for ios. It's easy to use.
 
 ## How to use
+
+pod 'ILEditLabel'
+
 You can easy to use by open project to read the files in source.
 
 ### Enable Copying
