@@ -16,7 +16,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"edit label demo"
+    self.title = @"edit label demo";
     [[UIPasteboard generalPasteboard] setString:@""];//clear board first
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Edit" style:UIBarButtonItemStylePlain target:self action:@selector(clickEdit:)];
     // Do any additional setup after loading the view, typically from a nib.
