@@ -128,20 +128,27 @@
 {
     if (sender.state == UIGestureRecognizerStateEnded)
     {
-        self.textView.text = self.text;
-        self.text = @"";
-        self.textView.hidden = NO;
         self.textView.font = self.font;
         self.textView.placeholder = self.placeholder;
         self.textView.textColor = self.textColor;
+        self.textView.text = self.text;
+        self.text = @"";
+        self.textView.hidden = NO;
+        
         [self.textView becomeFirstResponder];
 
     }
 }
 
-- (void)setText:(NSString *)text
+- (NSString *)text
 {
-    [super setText:text];
+    NSString *str = [super text];
+    if (self.editEnabled
+        && self.textView.hidden == NO
+        && [self.textView isFirstResponder]) {
+        str = self.textView.text;
+    }
+    return str;
 }
 
 - (ILPlaceholderTextView *)textView
@@ -149,11 +156,11 @@
     if (!_textView) {
         _textView = [[ILPlaceholderTextView alloc] initWithFrame:self.bounds];
         _textView.hidden = YES;
-        _textView.showsVerticalScrollIndicator = YES;
-        _textView.scrollEnabled = YES;
         _textView.editable = YES;
-        _textView.contentInset = UIEdgeInsetsMake(0, -5, 0, -5);
-        //_textView.scrollIndicatorInsets = UIEdgeInsetsMake(0, -5, 0, -5);
+        //_textView.contentInset = UIEdgeInsetsMake(0, -5, 0, -5);
+        self.textView.textContainer.lineFragmentPadding = 0;
+        UIEdgeInsets ss = _textView.textContainerInset;
+        _textView.textContainerInset = UIEdgeInsetsMake(0, 0, 0, 0);//UIEdgeInsetsMake(0, -5, 0, -5);
         _textView.delegate = self;
         [self addSubview:_textView];
     }
