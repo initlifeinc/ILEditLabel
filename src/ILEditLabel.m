@@ -7,44 +7,120 @@
 //
 
 #import "ILEditLabel.h"
+#import "ILPlaceholderTextView.h"
 
-@interface ILEditLabel()<UITextFieldDelegate>
-@property (nonatomic, strong) UITextField *textField;
+@interface ILEditLabel()<UITextViewDelegate>
+@property (nonatomic, strong) ILPlaceholderTextView *textView;
+@property (nonatomic, strong) UILabel *placeholderLabel;
+
 @end
 
 @implementation ILEditLabel
+- (id)initWithFrame:(CGRect)frame
+{
+    if (self = [super initWithFrame:frame]) {
+        [self initEditLabel];
+    }
+    return self;
+}
 
+- (id)init
+{
+    if (self = [super init]) {
+        [self initEditLabel];
+    }
+    return self;
+}
 
+- (void)initEditLabel
+{
+    self.placeholderColor = [UIColor grayColor];
+    self.placeholderLabel = [[UILabel alloc] initWithFrame:self.bounds];
+    [self addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:nil];
+    [self.textView addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:nil];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if ([keyPath isEqualToString:@"text"]) {
+        //if (!self.editEnabled) {
+            if(self.text.length == 0 && ![self.textView isFirstResponder]) {
+                [self showPlaceholderLabel:YES];
+            } else {
+                [self showPlaceholderLabel:NO];
+                self.textView.hidden = YES;
+            }
+        //}
+    }
+}
+
+- (void)showPlaceholderLabel:(BOOL)show
+{
+    self.placeholderLabel.hidden = !show;
+    self.placeholderLabel.textColor = self.placeholderColor;
+    self.placeholderLabel.text = self.placeholder;
+    self.placeholderLabel.font = self.font;
+    
+    
+}
+
+- (void)setEditing:(BOOL)editing animated:(BOOL)animated;
+{
+    [self setEditEnabled:editing];
+    
+}
 
 - (void)setEditEnabled:(BOOL)editEnabled
 {
-    if (!_tapGesture)
+    if (editEnabled)
     {
-        _tapGesture =
-        [[UITapGestureRecognizer alloc] initWithTarget:self
-                                                action:@selector(handleSingleTap:)];
-        self.userInteractionEnabled = YES;
-        _tapGesture.numberOfTapsRequired = 1;
-        _tapGesture.numberOfTouchesRequired = 1;
-        [self addGestureRecognizer:_tapGesture];
+        if (!_tapGesture) {
+            _tapGesture =
+            [[UITapGestureRecognizer alloc] initWithTarget:self
+                                                    action:@selector(handleSingleTap:)];
+            self.userInteractionEnabled = YES;
+            _tapGesture.numberOfTapsRequired = 1;
+            _tapGesture.numberOfTouchesRequired = 1;
+            [self addGestureRecognizer:_tapGesture];
+        }
+    } else {
+        if (_tapGesture) {
+            [self removeGestureRecognizer:_tapGesture];
+            _tapGesture = nil;
+        }
     }
     
     _editEnabled = editEnabled;
     if (!_editEnabled) {
-        [self.textField resignFirstResponder];
+//        if ([self.textView isFirstResponder]) {
+//            [self.textView resignFirstResponder];
+//        }
+        self.textView.hidden = YES;
+    } else  {
+        //self.textView.text = self.text;
+        //self.textView.hidden = NO;
     }
+   // [self layoutIfNeeded];
+
 }
 
 
 - (void)layoutSubviews
 {
     [super layoutSubviews];
-    if (_textField && CGRectEqualToRect(_textField.frame, self.bounds)) {
-        _textField.frame = self.bounds;
+    if (_textView && !CGRectEqualToRect(_textView.frame, self.bounds)) {
+        _textView.frame = self.bounds;
+    }
+    if (_placeholderLabel && !CGRectEqualToRect(_placeholderLabel.frame, self.bounds)) {
+        _placeholderLabel.frame = self.bounds;
     }
 }
+
 - (void)dealloc
 {
+    self.textView.delegate = nil;
+    [self.textView removeObserver:self forKeyPath:@"text"];
+    [self removeObserver:self forKeyPath:@"text"];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
@@ -52,48 +128,81 @@
 {
     if (sender.state == UIGestureRecognizerStateEnded)
     {
-        if (!_textField) {
-            _textField = [[UITextField alloc] initWithFrame:self.bounds];
-            _textField.text = self.text;
-            self.text = @"";
-            _textField.delegate = self;
-            [self addSubview:_textField];
-            [_textField becomeFirstResponder];
-        }
+        self.textView.text = self.text;
+        self.text = @"";
+        self.textView.hidden = NO;
+        self.textView.font = self.font;
+        self.textView.placeholder = self.placeholder;
+        self.textView.textColor = self.textColor;
+        [self.textView becomeFirstResponder];
+
     }
 }
 
-#pragma mark - text field delegate
-- (void)textFieldDidEndEditing:(UITextField *)textField
+- (void)setText:(NSString *)text
 {
-    [self endEdit];
+    [super setText:text];
 }
+
+- (ILPlaceholderTextView *)textView
+{
+    if (!_textView) {
+        _textView = [[ILPlaceholderTextView alloc] initWithFrame:self.bounds];
+        _textView.hidden = YES;
+        _textView.showsVerticalScrollIndicator = YES;
+        _textView.scrollEnabled = YES;
+        _textView.editable = YES;
+        _textView.contentInset = UIEdgeInsetsMake(0, -5, 0, -5);
+        //_textView.scrollIndicatorInsets = UIEdgeInsetsMake(0, -5, 0, -5);
+        _textView.delegate = self;
+        [self addSubview:_textView];
+    }
+    return _textView;
+}
+
+
+- (UILabel *)placeholderLabel
+{
+    if (!_placeholderLabel) {
+        _placeholderLabel = [[UILabel alloc] initWithFrame:self.bounds];
+        _placeholderLabel.frame = self.bounds;
+        _placeholderLabel.hidden = YES;
+        [self addSubview:_placeholderLabel];
+    }
+    return _placeholderLabel;
+}
+#pragma mark - text field delegate
+//- (void)textFieldDidEndEditing:(UITextField *)textField
+//{
+//    [self endEdit];
+//}
 
 - (void)endEdit
 {
-    if (_textField) {
-        [_textField removeFromSuperview];
-        _textField.delegate = nil;
-        self.text = _textField.text;
-        _textField = nil;
+    if (_textView) {
+        self.text = _textView.text;
+    }
+    if (self.editDelegate && [self.editDelegate respondsToSelector:@selector(didFinishEdit:)]) {
+        [self.editDelegate didFinishEdit:self];
     }
 }
-
-- (void)textFieldDidBeginEditing:(UITextField *)textField
-{
-    
-}
-
-- (BOOL)textFieldShouldReturn:(UITextField *)textField
-{
-    [textField endEditing:YES];
-    return YES;
-}
+//
+//- (void)textFieldDidBeginEditing:(UITextField *)textField
+//{
+//    
+//}
+//
+//- (BOOL)textFieldShouldReturn:(UITextField *)textField
+//{
+//    [textField endEditing:YES];
+//    return YES;
+//}
 
 - (BOOL)resignFirstResponder
 {
-    NSLog(@"editlabel resignFirstResponder");
-
+    if (self.editDelegate && [self.editDelegate respondsToSelector:@selector(didFinishEdit:)]) {
+        [self.editDelegate didFinishEdit:self];
+    }
     
     return [super resignFirstResponder];
 }
@@ -106,5 +215,21 @@
         can = YES;
     }
     return can;
+}
+
+
+- (BOOL)textViewShouldBeginEditing:(UITextView *)textView
+{
+    if (self.editDelegate && [self.editDelegate respondsToSelector:@selector(editLabelShouldBeginEditing:)]) {
+        return [self.editDelegate editLabelShouldBeginEditing:self];
+    }
+}
+
+- (void)textViewDidEndEditing:(UITextView *)textView
+{
+    [self endEdit];
+    if (self.editDelegate && [self.editDelegate respondsToSelector:@selector(editLabelDidEndEditing:)]) {
+        [self.editDelegate editLabelDidEndEditing:self];
+    }
 }
 @end
