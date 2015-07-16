@@ -32,10 +32,17 @@
     return self;
 }
 
++ (UIColor *)defaultPlaceholderColor
+{
+    return [UIColor colorWithRed:0 green:0 blue:0.098 alpha:0.22];
+}
+
 - (void)initEditLabel
 {
-    self.placeholderColor = [UIColor grayColor];
-    self.placeholderLabel = [[UILabel alloc] initWithFrame:self.bounds];
+    self.isEditable = YES;
+    self.editEnabled = YES;
+    self.placeholderColor = [[self class] defaultPlaceholderColor];
+    self.placeholderLabel;
     [self addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:nil];
     [self.textView addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:nil];
 }
@@ -43,15 +50,27 @@
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
     if ([keyPath isEqualToString:@"text"]) {
-        //if (!self.editEnabled) {
-            if(self.text.length == 0 && ![self.textView isFirstResponder]) {
-                [self showPlaceholderLabel:YES];
-            } else {
-                [self showPlaceholderLabel:NO];
-                self.textView.hidden = YES;
-            }
-        //}
+        [self checkPlaceholder];
+    } else {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
+}
+
+
+- (void)checkPlaceholder
+{
+    if(self.text.length == 0 && ![self.textView isFirstResponder]) {
+        [self showPlaceholderLabel:YES];
+    } else {
+        [self showPlaceholderLabel:NO];
+    }
+}
+
+- (void)setPlaceholder:(NSString *)placeholder
+{
+    _placeholder = [placeholder copy];
+    [self checkPlaceholder];
+    [self layoutIfNeeded];
 }
 
 - (void)showPlaceholderLabel:(BOOL)show
@@ -60,19 +79,36 @@
     self.placeholderLabel.textColor = self.placeholderColor;
     self.placeholderLabel.text = self.placeholder;
     self.placeholderLabel.font = self.font;
-    
-    
+    if (!show) {
+        self.textView.hidden = YES;
+    }
 }
 
 - (void)setEditing:(BOOL)editing animated:(BOOL)animated;
 {
-    [self setEditEnabled:editing];
-    
+    if (self.isEditable) {
+        [self setEditEnabled:editing];
+    }
 }
 
 - (void)setEditEnabled:(BOOL)editEnabled
 {
-    if (editEnabled)
+    _editEnabled = editEnabled;
+    [self applyEditing];
+}
+
+- (void)setIsEditable:(BOOL)isEditable
+{
+    _isEditable = isEditable;
+    if (!isEditable) {
+        [self setEditEnabled:isEditable];
+    }
+}
+
+
+- (void)applyEditing
+{
+    if (_editEnabled)
     {
         if (!_tapGesture) {
             _tapGesture =
@@ -90,20 +126,10 @@
         }
     }
     
-    _editEnabled = editEnabled;
     if (!_editEnabled) {
-//        if ([self.textView isFirstResponder]) {
-//            [self.textView resignFirstResponder];
-//        }
         self.textView.hidden = YES;
-    } else  {
-        //self.textView.text = self.text;
-        //self.textView.hidden = NO;
     }
-   // [self layoutIfNeeded];
-
 }
-
 
 - (void)layoutSubviews
 {
@@ -151,12 +177,20 @@
     return str;
 }
 
+- (void)setPlaceholderColor:(UIColor *)color
+{
+    _placeholderColor = color;
+    if (_textView) {
+        _textView.placeholderColor = color;
+    }
+}
 - (ILPlaceholderTextView *)textView
 {
     if (!_textView) {
         _textView = [[ILPlaceholderTextView alloc] initWithFrame:self.bounds];
         _textView.hidden = YES;
         _textView.editable = YES;
+        _textView.placeholderColor = self.placeholderColor;
         //_textView.contentInset = UIEdgeInsetsMake(0, -5, 0, -5);
         self.textView.textContainer.lineFragmentPadding = 0;
         UIEdgeInsets ss = _textView.textContainerInset;
@@ -216,7 +250,6 @@
 
 - (BOOL)canBecomeFirstResponder
 {
-    NSLog(@"editlabel canBecomeFirstResponder");
     BOOL can = [super canBecomeFirstResponder];
     if (self.editEnabled) {
         can = YES;
@@ -238,5 +271,15 @@
     if (self.editDelegate && [self.editDelegate respondsToSelector:@selector(editLabelDidEndEditing:)]) {
         [self.editDelegate editLabelDidEndEditing:self];
     }
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
+{
+    if (text.length > 0 && [text isEqualToString:@"\n"]) {
+        if (self.editDelegate && [self.editDelegate respondsToSelector:@selector(editLabelDidPressReturn:)]) {
+            return [self.editDelegate editLabelDidPressReturn:self];
+        }
+    }
+    return YES;
 }
 @end
