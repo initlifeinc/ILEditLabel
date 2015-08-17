@@ -59,6 +59,10 @@
 
 - (void)checkPlaceholder
 {
+    if (!self.editEnabled) {
+        [self showPlaceholderLabel:NO];
+        return ;
+    }
     if(self.text.length == 0 && ![self.textView isFirstResponder]) {
         [self showPlaceholderLabel:YES];
     } else {
@@ -188,6 +192,7 @@
 {
     if (!_textView) {
         _textView = [[ILPlaceholderTextView alloc] initWithFrame:self.bounds];
+        _textView.layoutManager.allowsNonContiguousLayout = NO;
         _textView.hidden = YES;
         _textView.editable = YES;
         _textView.placeholderColor = self.placeholderColor;
