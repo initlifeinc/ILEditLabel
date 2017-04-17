@@ -268,6 +268,7 @@
     if (self.editDelegate && [self.editDelegate respondsToSelector:@selector(editLabelShouldBeginEditing:)]) {
         return [self.editDelegate editLabelShouldBeginEditing:self];
     }
+    return YES;
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView
