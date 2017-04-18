@@ -1,7 +1,7 @@
 language: objective-c
 xcode_project: ILCommonKitDemo/ILCommonKitDemo.xcodeproj # path to your xcodeproj folder
 xcode_scheme: ILCommonKitDemoTests
-xcode_sdk: iphonesimulator10.2
+#xcode_sdk: iphonesimulator10.2
 #script: 
 #  - xctool -project ILCommonKitDemo/ILCommonKitDemo.xcodeproj -scheme ILCommonKitDemoTests -sdk iphonesimulator10.2 run-tests GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES GCC_GENERATE_TEST_COVERAGE_FILES=YES
 after_success:
