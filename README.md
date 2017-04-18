@@ -1,4 +1,4 @@
-
+![](https://travis-ci.org/initlifeinc/ILEditLabel.svg?branch=master)
 # ILEditLabel
 ILEditLabel is label support copy&edit for ios. It's easy to use.
 

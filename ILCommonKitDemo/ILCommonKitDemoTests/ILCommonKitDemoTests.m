@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
+#import "ILEditLabel.h"
 
 @interface ILCommonKitDemoTests : XCTestCase
 
@@ -28,6 +29,12 @@
 - (void)testExample {
     // This is an example of a functional test case.
     XCTAssert(YES, @"Pass");
+}
+
+- (void)testEditlabel
+{
+    ILEditLabel *lb = [[ILEditLabel alloc] init];
+    XCTAssertTrue(lb.editEnabled == NO, @"default should be NO");
 }
 
 - (void)testPerformanceExample {

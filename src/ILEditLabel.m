@@ -42,7 +42,7 @@
     self.isEditable = YES;
     self.editEnabled = YES;
     self.placeholderColor = [[self class] defaultPlaceholderColor];
-    self.placeholderLabel;
+    [self placeholderLabel];
     [self addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:nil];
     [self.textView addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:nil];
 }
@@ -198,7 +198,6 @@
         _textView.placeholderColor = self.placeholderColor;
         //_textView.contentInset = UIEdgeInsetsMake(0, -5, 0, -5);
         self.textView.textContainer.lineFragmentPadding = 0;
-        UIEdgeInsets ss = _textView.textContainerInset;
         _textView.textContainerInset = UIEdgeInsetsMake(0, 0, 0, 0);//UIEdgeInsetsMake(0, -5, 0, -5);
         _textView.delegate = self;
         [self addSubview:_textView];
