@@ -16,14 +16,6 @@
 @end
 
 @implementation ILEditLabel
-- (id)initWithFrame:(CGRect)frame
-{
-    if (self = [super initWithFrame:frame]) {
-        [self initEditLabel];
-    }
-    return self;
-}
-
 - (id)init
 {
     if (self = [super init]) {

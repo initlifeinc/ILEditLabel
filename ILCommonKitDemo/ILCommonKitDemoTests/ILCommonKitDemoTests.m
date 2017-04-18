@@ -34,7 +34,7 @@
 - (void)testEditlabel
 {
     ILEditLabel *lb = [[ILEditLabel alloc] init];
-    XCTAssertTrue(lb.editEnabled == NO, @"default should be NO");
+    XCTAssertTrue(lb.editEnabled, @"default should be NO");
 }
 
 - (void)testPerformanceExample {
